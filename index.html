@@ -3,208 +3,470 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Emoji Steganography - Hide Secret Messages</title>
+    <title>Emoji Secret Text - Hide Secret Messages</title>
     <meta name="description" content="Hide secret messages inside emoji using invisible Unicode variation selectors. Encode and decode text with this steganography tool.">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background: linear-gradient(135deg, #0a0a0f, #1a1a2e, #0a0a0f);
-            color: #f7fafc; 
-            min-height: 100vh; 
-            line-height: 1.5;
+        :root {
+            --background: 222.2 84% 4.9%;
+            --foreground: 210 40% 98%;
+            --surface: 217.2 32.6% 17.5%;
+            --muted: 217.2 32.6% 17.5%;
+            --muted-foreground: 215 20.2% 65.1%;
+            --border: 217.2 32.6% 17.5%;
+            --primary: 142.1 76.2% 36.3%;
+            --primary-foreground: 355.7 100% 97.3%;
+            --cyber-glow: 142.1 76.2% 36.3%;
+            --cyber-green: 142.1 76.2% 36.3%;
+            --cyber-blue: 217.2 91.2% 59.8%;
+            --gradient-primary: linear-gradient(135deg, hsl(142.1 76.2% 36.3%), hsl(142.1 76.2% 46.3%));
+            --gradient-surface: linear-gradient(135deg, hsl(217.2 32.6% 17.5%), hsl(217.2 32.6% 15.5%));
+            --gradient-glow: linear-gradient(135deg, hsl(217.2 32.6% 19.5%), hsl(217.2 32.6% 17.5%));
+            --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-glow: 0 0 20px hsl(142.1 76.2% 36.3% / 0.3);
         }
-        .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
-        .header { text-align: center; margin-bottom: 32px; }
-        .title { 
-            font-size: 2.5rem; 
-            font-weight: bold; 
-            background: linear-gradient(135deg, #8b5cf6, #3b82f6);
-            -webkit-background-clip: text; 
-            background-clip: text; 
-            -webkit-text-fill-color: transparent; 
-            margin-bottom: 8px; 
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        .subtitle { color: #9ca3af; font-size: 1.125rem; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-bottom: 32px; }
-        @media (max-width: 1024px) { .grid { grid-template-columns: 1fr; } }
-        .card { 
-            background: linear-gradient(145deg, #1f2937, #374151);
-            border: 1px solid #4b5563; 
-            border-radius: 12px; 
-            padding: 24px; 
-            box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, hsl(var(--background)), hsl(var(--surface)), hsl(var(--background)));
+            color: hsl(var(--foreground));
+            min-height: 100vh;
+            line-height: 1.6;
         }
-        .card-header { display: flex; align-items: center; gap: 8px; margin-bottom: 24px; }
-        .card-title { font-size: 1.5rem; font-weight: 600; }
-        .emoji-grid { 
-            display: grid; 
-            grid-template-columns: repeat(8, 1fr); 
-            gap: 8px; 
-            margin-bottom: 24px; 
-        }
-        @media (min-width: 640px) { .emoji-grid { grid-template-columns: repeat(12, 1fr); } }
-        .emoji-btn { 
-            width: 40px; height: 40px; 
-            border: 1px solid #4b5563; 
-            background: transparent; 
-            border-radius: 8px; 
-            font-size: 18px; 
-            cursor: pointer; 
-            transition: all 0.3s;
-        }
-        .emoji-btn:hover { background: #374151; transform: scale(1.1); }
-        .emoji-btn.selected { 
-            background: linear-gradient(135deg, #8b5cf6, #3b82f6);
-            box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
-        }
-        .form-group { margin-bottom: 24px; }
-        .label { display: block; font-size: 0.875rem; font-weight: 500; margin-bottom: 8px; }
-        .textarea, .input { 
-            width: 100%; 
-            padding: 12px; 
-            background: #1f2937; 
-            border: 1px solid #4b5563; 
-            border-radius: 8px; 
-            color: #f7fafc; 
-            font-family: inherit; 
-            resize: vertical;
-        }
-        .textarea { min-height: 100px; }
-        .textarea:focus, .input:focus { 
-            outline: none; 
-            border-color: #8b5cf6; 
-            box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
-        }
-        .btn-group { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 24px; }
-        .btn { 
-            padding: 8px 16px; 
-            border: none; 
-            border-radius: 8px; 
-            font-weight: 500; 
-            cursor: pointer; 
-            transition: all 0.3s;
-        }
-        .btn-primary { 
-            background: linear-gradient(135deg, #8b5cf6, #3b82f6); 
-            color: white; 
-        }
-        .btn-primary:hover { box-shadow: 0 0 20px rgba(139, 92, 246, 0.3); }
-        .btn-outline { 
-            background: transparent; 
-            border: 1px solid #4b5563; 
-            color: #f7fafc; 
-        }
-        .btn-outline:hover { background: #374151; }
-        .btn-ghost { background: transparent; color: #9ca3af; }
-        .btn-ghost:hover { background: #374151; color: #f7fafc; }
-        .btn-decode { border: 1px solid #10b981; color: #10b981; }
-        .btn-decode:hover { background: rgba(16, 185, 129, 0.1); }
-        .result-card { 
-            background: linear-gradient(90deg, rgba(139, 92, 246, 0.1), rgba(16, 185, 129, 0.1));
-            border: 1px solid rgba(75, 85, 99, 0.3); 
-            border-radius: 8px; 
-            padding: 16px; 
-            margin-top: 16px;
-        }
-        .result-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-        .result-input { 
-            font-family: 'Courier New', monospace; 
-            background: #1f2937; 
-            border: 1px solid #4b5563; 
-            padding: 8px; 
-            border-radius: 4px; 
-            width: 100%; 
-            color: #f7fafc;
-        }
-        .stats { color: #10b981; font-size: 0.875rem; margin-top: 8px; }
-        .debug-info { margin-top: 16px; font-size: 0.75rem; }
-        .debug-header { color: #3b82f6; margin-bottom: 8px; }
-        .debug-item { color: #9ca3af; font-family: 'Courier New', monospace; margin-left: 20px; }
-        .decoded-result { 
-            background: #1f2937; 
-            border: 1px solid #4b5563; 
-            padding: 12px; 
-            border-radius: 4px; 
-            font-family: 'Courier New', monospace; 
-            color: #10b981;
-        }
-        .help-section { 
-            background: linear-gradient(145deg, #1f2937, #374151);
-            border: 1px solid #4b5563; 
-            border-radius: 12px; 
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
             padding: 24px;
         }
-        .help-header { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
-        .help-content { font-size: 0.875rem; color: #9ca3af; line-height: 1.6; }
-        .help-content p { margin-bottom: 16px; }
-        .help-link { color: #3b82f6; text-decoration: none; }
-        .help-link:hover { color: #8b5cf6; }
-        .toast { 
-            position: fixed; 
-            top: 20px; 
-            right: 20px; 
-            background: #1f2937; 
-            border: 1px solid #4b5563; 
-            border-radius: 8px; 
-            padding: 16px; 
-            box-shadow: 0 8px 32px rgba(0,0,0,0.6);
-            transform: translateX(100%); 
-            transition: transform 0.3s; 
-            z-index: 1000; 
+
+        .header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: var(--gradient-primary);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+
+        .header .subtitle {
+            font-size: 1.25rem;
+            font-weight: 500;
+            color: hsl(var(--muted-foreground));
+            margin-bottom: 4px;
+        }
+
+        .header .description {
+            font-size: 1.125rem;
+            color: hsl(var(--muted-foreground));
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 32px;
+            margin-bottom: 32px;
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: var(--gradient-surface);
+            border: 1px solid hsl(var(--border) / 0.5);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: var(--shadow-card);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+
+        .card-header h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .icon {
+            width: 20px;
+            height: 20px;
+            stroke: currentColor;
+            stroke-width: 2;
+            fill: none;
+        }
+
+        .icon-encode {
+            color: hsl(var(--cyber-glow));
+        }
+
+        .icon-decode {
+            color: hsl(var(--cyber-green));
+        }
+
+        .emoji-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 8px;
+            margin-bottom: 24px;
+            padding: 16px;
+            background: hsl(var(--surface));
+            border-radius: 8px;
+            border: 1px solid hsl(var(--border) / 0.5);
+        }
+
+        .emoji-btn {
+            background: transparent;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            padding: 8px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .emoji-btn:hover {
+            background: hsl(var(--muted) / 0.5);
+            border-color: hsl(var(--border));
+        }
+
+        .emoji-btn.selected {
+            border-color: hsl(var(--primary));
+            background: hsl(var(--primary) / 0.1);
+            box-shadow: 0 0 10px hsl(var(--primary) / 0.3);
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .textarea,
+        .input {
+            width: 100%;
+            padding: 12px;
+            background: hsl(var(--surface));
+            border: 1px solid hsl(var(--border) / 0.5);
+            border-radius: 6px;
+            color: hsl(var(--foreground));
+            font-family: inherit;
+            resize: vertical;
+        }
+
+        .textarea {
+            min-height: 100px;
+        }
+
+        .textarea:focus,
+        .input:focus {
+            outline: none;
+            border-color: hsl(var(--primary));
+            box-shadow: 0 0 0 2px hsl(var(--primary) / 0.2);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 10px 16px;
+            border-radius: 6px;
+            border: 1px solid transparent;
+            background: hsl(var(--muted));
+            color: hsl(var(--foreground));
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        .btn-primary {
+            background: var(--gradient-primary);
+            color: hsl(var(--primary-foreground));
+        }
+
+        .btn-primary:hover {
+            box-shadow: var(--shadow-glow);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border-color: hsl(var(--border));
+        }
+
+        .btn-outline:hover {
+            background: hsl(var(--muted) / 0.5);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: hsl(var(--muted-foreground));
+        }
+
+        .btn-ghost:hover {
+            background: hsl(var(--muted) / 0.5);
+            color: hsl(var(--foreground));
+        }
+
+        .btn-decode {
+            border-color: hsl(var(--cyber-green));
+            color: hsl(var(--cyber-green));
+        }
+
+        .btn-decode:hover {
+            background: hsl(var(--cyber-green) / 0.1);
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 0.75rem;
+        }
+
+        .result-card {
+            background: var(--gradient-glow);
+            border: 1px solid hsl(var(--border) / 0.3);
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 16px;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .result-input {
+            font-family: 'Courier New', monospace;
+            background: hsl(var(--surface));
+            border: 1px solid hsl(var(--border) / 0.5);
+        }
+
+        .bytes-info {
+            color: hsl(var(--cyber-green));
+            font-size: 0.875rem;
+            margin-top: 8px;
+        }
+
+        .debug-info {
+            margin-top: 16px;
+            font-size: 0.75rem;
+        }
+
+        .debug-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: hsl(var(--cyber-blue));
+            margin-bottom: 4px;
+        }
+
+        .debug-line {
+            color: hsl(var(--muted-foreground));
+            font-family: 'Courier New', monospace;
+            padding-left: 20px;
+            margin-bottom: 2px;
+        }
+
+        .decoded-message {
+            background: hsl(var(--surface));
+            border: 1px solid hsl(var(--border) / 0.5);
+            border-radius: 6px;
+            padding: 12px;
+            font-family: 'Courier New', monospace;
+            color: hsl(var(--cyber-green));
+        }
+
+        .help-section {
+            background: var(--gradient-surface);
+            border: 1px solid hsl(var(--border) / 0.5);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: var(--shadow-card);
+        }
+
+        .help-section h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .help-section p {
+            color: hsl(var(--muted-foreground));
+            margin-bottom: 16px;
+        }
+
+        .help-section ul {
+            color: hsl(var(--muted-foreground));
+            margin-left: 20px;
+        }
+
+        .help-section li {
+            margin-bottom: 8px;
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: hsl(var(--surface));
+            border: 1px solid hsl(var(--border));
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: var(--shadow-card);
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            z-index: 1000;
             max-width: 300px;
         }
-        .toast.show { transform: translateX(0); }
-        .toast-title { font-weight: 600; margin-bottom: 4px; }
-        .toast-description { font-size: 0.875rem; color: #9ca3af; }
-        .toast-error { border-color: #dc2626; }
-        .ml-auto { margin-left: auto; }
-        .hidden { display: none; }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast.error {
+            border-color: #ef4444;
+            background: hsl(var(--surface));
+        }
+
+        .toast-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .toast-description {
+            font-size: 0.875rem;
+            color: hsl(var(--muted-foreground));
+        }
+
+        .ml-auto {
+            margin-left: auto;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .icon-sm {
+            width: 16px;
+            height: 16px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
+        <!-- Header -->
         <div class="header">
-            <h1 class="title">Emoji Steganography</h1>
-            <p class="subtitle">Hide secret messages inside emoji using invisible Unicode variation selectors</p>
+            <h1>Emoji Secret Text</h1>
+            <p class="subtitle">secret.sala.company</p>
+            <p class="description">Hide secret messages inside emoji using invisible Unicode variation selectors</p>
         </div>
 
+        <!-- Main Grid -->
         <div class="grid">
             <!-- Encode Pane -->
             <div class="card">
                 <div class="card-header">
-                    <span style="color: #8b5cf6;">⚡</span>
-                    <h2 class="card-title">Encode</h2>
+                    <svg class="icon icon-encode" viewBox="0 0 24 24">
+                        <polygon points="13,2 3,14 12,14 11,22 21,10 12,10"></polygon>
+                    </svg>
+                    <h2>Encode</h2>
                 </div>
 
                 <div class="form-group">
-                    <label class="label">Select Carrier Emoji</label>
+                    <label class="label">Choose Carrier Emoji</label>
                     <div class="emoji-grid" id="emojiGrid"></div>
                 </div>
 
                 <div class="form-group">
                     <label class="label">Secret Message</label>
-                    <textarea class="textarea" id="secretMessage" placeholder="Enter your secret message here..."></textarea>
+                    <textarea 
+                        id="secretMessage" 
+                        class="textarea" 
+                        placeholder="Enter your secret message here..."
+                    ></textarea>
                 </div>
 
-                <div class="btn-group">
-                    <button class="btn btn-primary" onclick="handleEncode()">✨ Encode</button>
+                <div class="button-group">
+                    <button class="btn btn-primary" onclick="handleEncode()">
+                        <svg class="icon icon-sm" viewBox="0 0 24 24">
+                            <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path>
+                        </svg>
+                        Encode
+                    </button>
                     <button class="btn btn-outline" onclick="clearEncode()">Clear</button>
-                    <button class="btn btn-ghost ml-auto" onclick="toggleDebug()" id="debugBtn">👁 Show Debug</button>
+                    <button class="btn btn-ghost btn-sm ml-auto" onclick="toggleDebug()">
+                        <svg class="icon icon-sm" viewBox="0 0 24 24" id="debugIcon">
+                            <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                        <span id="debugText">Show Debug</span>
+                    </button>
                 </div>
 
-                <div id="encodeResult" class="hidden">
-                    <div class="result-card">
-                        <div class="result-header">
-                            <label class="label">Emoji with Hidden Data</label>
-                            <button class="btn btn-ghost" onclick="copyResult()" style="padding: 4px 8px;">📋</button>
+                <div id="encodedResult" class="result-card hidden">
+                    <div class="result-header">
+                        <label class="label">Emoji with Hidden Data</label>
+                        <button class="btn btn-ghost btn-sm" onclick="copyResult()">
+                            <svg class="icon icon-sm" viewBox="0 0 24 24">
+                                <rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect>
+                                <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <input id="encodedEmoji" class="input result-input" readonly>
+                    <p id="bytesInfo" class="bytes-info"></p>
+                    <div id="debugInfo" class="debug-info hidden">
+                        <div class="debug-header">
+                            <svg class="icon icon-sm" viewBox="0 0 24 24">
+                                <polyline points="16,18 22,12 16,6"></polyline>
+                                <polyline points="8,6 2,12 8,18"></polyline>
+                            </svg>
+                            Debug Info:
                         </div>
-                        <input class="result-input" id="encodedEmoji" readonly>
-                        <div class="stats" id="encodeStats"></div>
-                        <div id="debugInfo" class="debug-info hidden">
-                            <div class="debug-header">Debug Info:</div>
-                            <div id="debugList"></div>
-                        </div>
+                        <div id="debugLines"></div>
                     </div>
                 </div>
             </div>
@@ -212,103 +474,139 @@
             <!-- Decode Pane -->
             <div class="card">
                 <div class="card-header">
-                    <span style="color: #10b981;">👁</span>
-                    <h2 class="card-title">Decode</h2>
+                    <svg class="icon icon-decode" viewBox="0 0 24 24">
+                        <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    <h2>Decode</h2>
                 </div>
 
                 <div class="form-group">
                     <label class="label">Paste Emoji with Hidden Data</label>
-                    <textarea class="textarea" id="inputToDecode" placeholder="Paste the emoji with hidden message here..."></textarea>
+                    <textarea 
+                        id="inputToDecode" 
+                        class="textarea" 
+                        placeholder="Paste the emoji with hidden message here..."
+                    ></textarea>
                 </div>
 
-                <div class="btn-group">
-                    <button class="btn btn-decode" onclick="handleDecode()">👁 Decode</button>
+                <div class="button-group">
+                    <button class="btn btn-decode" onclick="handleDecode()">
+                        <svg class="icon icon-sm" viewBox="0 0 24 24">
+                            <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                        Decode
+                    </button>
                     <button class="btn btn-ghost" onclick="clearDecode()">Clear</button>
                 </div>
 
-                <div id="decodeResult" class="hidden">
-                    <div class="result-card">
-                        <label class="label">Decoded Message</label>
-                        <div class="decoded-result" id="decodedMessage"></div>
-                    </div>
+                <div id="decodedResult" class="result-card hidden">
+                    <label class="label">Decoded Message</label>
+                    <div id="decodedMessage" class="decoded-message"></div>
                 </div>
             </div>
         </div>
 
         <!-- Help Section -->
         <div class="help-section">
-            <div class="help-header">
-                <span style="color: #3b82f6;">ℹ️</span>
-                <h3 style="font-size: 1.125rem; font-weight: 600;">How It Works</h3>
-            </div>
-            
-            <div class="help-content">
-                <p>This tool hides secret messages inside emoji by using invisible Unicode variation selectors. These are special characters that modify the appearance of emoji but are often preserved when copying and pasting.</p>
-                
-                <p><strong style="color: #f7fafc">Note:</strong> Some applications and platforms may strip these invisible characters, so the hidden data might not survive all transfers. This technique works best in environments that preserve Unicode formatting.</p>
-                
-                <div style="padding-top: 8px;">
-                    <a href="https://paulbutler.org/2025/smuggling-arbitrary-data-through-an-emoji/" target="_blank" rel="noopener noreferrer" class="help-link">🔗 Learn more about this technique</a>
-                </div>
-                
-                <p style="border-top: 1px solid rgba(75, 85, 99, 0.3); padding-top: 12px; margin-top: 16px; font-size: 0.75rem;"><strong>Disclaimer:</strong> This tool is for educational purposes. Always respect privacy and security policies when handling data.</p>
-            </div>
+            <h3>
+                <svg class="icon" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                    <path d="M12 17h.01"></path>
+                </svg>
+                How it Works
+            </h3>
+            <p>This tool uses Unicode variation selectors to hide text data within emoji characters:</p>
+            <ul>
+                <li><strong>Encoding:</strong> Converts your message to UTF-8 bytes, then maps each byte to invisible Unicode variation selectors that are appended to the carrier emoji.</li>
+                <li><strong>Decoding:</strong> Extracts the variation selectors from the emoji and converts them back to the original message.</li>
+                <li><strong>Invisible:</strong> The hidden data appears as a normal emoji in most applications, making it perfect for covert communication.</li>
+                <li><strong>Compatible:</strong> Works across different platforms and messaging apps that support Unicode.</li>
+            </ul>
         </div>
     </div>
 
     <!-- Toast Container -->
     <div id="toast" class="toast">
-        <div class="toast-title" id="toastTitle"></div>
-        <div class="toast-description" id="toastDescription"></div>
+        <div id="toastTitle" class="toast-title"></div>
+        <div id="toastDescription" class="toast-description"></div>
     </div>
 
     <script>
-        const COMMON_EMOJIS = ['😀', '😍', '🔥', '❤️', '👍', '😂', '🎉', '✨', '💯', '🚀', '⭐', '🌟', '💎', '🎨', '🎵', '📱', '💻', '🌈', '☀️', '🌙', '⚡', '🔮', '🎯', '🏆'];
+        // Common emojis for encoding
+        const COMMON_EMOJIS = [
+            '😀', '😍', '🔥', '❤️', '👍', '😂', '🎉', '✨',
+            '💯', '🚀', '⭐', '🌟', '💎', '🎨', '🎵', '📱',
+            '💻', '🌈', '☀️', '🌙', '⚡', '🔮', '🎯', '🏆'
+        ];
+
         let selectedEmoji = '😀';
         let debugMode = false;
 
+        // Initialize emoji picker
         function initializeEmojiPicker() {
             const emojiGrid = document.getElementById('emojiGrid');
             COMMON_EMOJIS.forEach(emoji => {
-                const btn = document.createElement('button');
-                btn.className = `emoji-btn ${emoji === selectedEmoji ? 'selected' : ''}`;
-                btn.textContent = emoji;
-                btn.onclick = () => selectEmoji(emoji);
-                emojiGrid.appendChild(btn);
+                const button = document.createElement('button');
+                button.className = `emoji-btn ${emoji === selectedEmoji ? 'selected' : ''}`;
+                button.textContent = emoji;
+                button.onclick = () => selectEmoji(emoji);
+                emojiGrid.appendChild(button);
             });
         }
 
         function selectEmoji(emoji) {
             selectedEmoji = emoji;
             document.querySelectorAll('.emoji-btn').forEach(btn => {
-                btn.className = btn.textContent === emoji ? 'emoji-btn selected' : 'emoji-btn';
+                btn.classList.toggle('selected', btn.textContent === emoji);
             });
         }
 
+        // Encoding algorithm
         function encodeMessage(message, baseEmoji) {
             const utf8Bytes = new TextEncoder().encode(message);
             const selectors = [];
             const debugInfo = [];
 
             for (const byte of utf8Bytes) {
-                let selector = byte <= 15 ? 0xFE00 + byte : 0xE0100 + (byte - 16);
+                let selector;
+                if (byte <= 15) {
+                    selector = 0xFE00 + byte; // U+FE00..U+FE0F
+                } else {
+                    selector = 0xE0100 + (byte - 16); // U+E0100..U+E01EF
+                }
                 selectors.push(selector);
                 debugInfo.push(`Byte ${byte} → U+${selector.toString(16).toUpperCase()}`);
             }
 
             const selectorString = selectors.map(s => String.fromCodePoint(s)).join('');
+            const result = baseEmoji + selectorString;
+
             return {
-                encodedEmoji: baseEmoji + selectorString,
+                encodedEmoji: result,
                 bytes: utf8Bytes.length,
                 debugInfo: debugMode ? debugInfo : undefined
             };
         }
 
+        // Decoding algorithm
         function decodeMessage(input) {
             const codePoints = Array.from(input).map(char => char.codePointAt(0));
-            let baseIndex = codePoints.findIndex(cp => cp > 127);
+            
+            // Find the base emoji (first non-ASCII character before selectors)
+            let baseIndex = -1;
+            for (let i = 0; i < codePoints.length; i++) {
+                if (codePoints[i] > 127) {
+                    baseIndex = i;
+                    break;
+                }
+            }
+
             if (baseIndex === -1) return '';
 
+            // Extract variation selectors after the base emoji
             const selectors = codePoints.slice(baseIndex + 1);
             if (selectors.length === 0) return '';
 
@@ -319,14 +617,17 @@
                     byte = selector - 0xFE00;
                 } else if (selector >= 0xE0100 && selector <= 0xE01EF) {
                     byte = (selector - 0xE0100) + 16;
-                } else continue;
+                } else {
+                    continue; // Skip invalid selectors
+                }
                 bytes.push(byte);
             }
 
             if (bytes.length === 0) return '';
 
             try {
-                return new TextDecoder('utf-8', { fatal: true }).decode(new Uint8Array(bytes));
+                const uint8Array = new Uint8Array(bytes);
+                return new TextDecoder('utf-8', { fatal: true }).decode(uint8Array);
             } catch {
                 return '';
             }
@@ -334,6 +635,7 @@
 
         function handleEncode() {
             const message = document.getElementById('secretMessage').value;
+            
             if (!message.trim()) {
                 showToast('No message to encode', 'Please enter a secret message first.', 'error');
                 return;
@@ -344,78 +646,100 @@
             }
 
             const result = encodeMessage(message, selectedEmoji);
-            document.getElementById('encodedEmoji').value = result.encodedEmoji;
-            document.getElementById('encodeStats').textContent = `${result.bytes} bytes hidden`;
             
-            if (debugMode && result.debugInfo) {
-                document.getElementById('debugList').innerHTML = result.debugInfo.map(info => `<div class="debug-item">${info}</div>`).join('');
+            document.getElementById('encodedEmoji').value = result.encodedEmoji;
+            document.getElementById('bytesInfo').textContent = `${result.bytes} bytes hidden`;
+            
+            if (result.debugInfo) {
+                const debugLines = document.getElementById('debugLines');
+                debugLines.innerHTML = result.debugInfo.map(info => 
+                    `<div class="debug-line">${info}</div>`
+                ).join('');
                 document.getElementById('debugInfo').classList.remove('hidden');
-            } else {
-                document.getElementById('debugInfo').classList.add('hidden');
             }
-
-            document.getElementById('encodeResult').classList.remove('hidden');
+            
+            document.getElementById('encodedResult').classList.remove('hidden');
             showToast('Message encoded!', `Hidden ${result.bytes} bytes in emoji.`);
         }
 
         function handleDecode() {
             const input = document.getElementById('inputToDecode').value;
+            
             if (!input.trim()) {
                 showToast('No input to decode', 'Please paste emoji with hidden data first.', 'error');
                 return;
             }
 
             const decoded = decodeMessage(input);
+            
             if (decoded) {
                 document.getElementById('decodedMessage').textContent = decoded;
-                document.getElementById('decodeResult').classList.remove('hidden');
+                document.getElementById('decodedResult').classList.remove('hidden');
                 showToast('Message decoded!', 'Successfully extracted hidden message.');
             } else {
-                document.getElementById('decodeResult').classList.add('hidden');
+                document.getElementById('decodedResult').classList.add('hidden');
                 showToast('No hidden data found', 'No hidden data detected in the input.', 'error');
             }
         }
 
-        async function copyResult() {
-            const text = document.getElementById('encodedEmoji').value;
-            try {
-                await navigator.clipboard.writeText(text);
+        function copyResult() {
+            const encodedEmoji = document.getElementById('encodedEmoji').value;
+            navigator.clipboard.writeText(encodedEmoji).then(() => {
                 showToast('Copied!', 'Encoded result copied to clipboard.');
-            } catch {
+            }).catch(() => {
+                // Fallback for older browsers
                 const textArea = document.createElement('textarea');
-                textArea.value = text;
+                textArea.value = encodedEmoji;
                 document.body.appendChild(textArea);
                 textArea.select();
                 document.execCommand('copy');
                 document.body.removeChild(textArea);
                 showToast('Copied!', 'Encoded result copied to clipboard.');
-            }
+            });
         }
 
         function clearEncode() {
             document.getElementById('secretMessage').value = '';
-            document.getElementById('encodeResult').classList.add('hidden');
+            document.getElementById('encodedResult').classList.add('hidden');
         }
 
         function clearDecode() {
             document.getElementById('inputToDecode').value = '';
-            document.getElementById('decodeResult').classList.add('hidden');
+            document.getElementById('decodedResult').classList.add('hidden');
         }
 
         function toggleDebug() {
             debugMode = !debugMode;
-            document.getElementById('debugBtn').textContent = debugMode ? '🙈 Hide Debug' : '👁 Show Debug';
+            const debugText = document.getElementById('debugText');
+            const debugIcon = document.getElementById('debugIcon');
+            
+            if (debugMode) {
+                debugText.textContent = 'Hide Debug';
+                debugIcon.innerHTML = '<path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"></path><path d="m10.73 5.08-1.39 1.39a3 3 0 0 0-1.85 2.53h-.75a4.5 4.5 0 0 1 3.99-3.92Z"></path><path d="m2 2 20 20"></path>';
+            } else {
+                debugText.textContent = 'Show Debug';
+                debugIcon.innerHTML = '<path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle>';
+                document.getElementById('debugInfo').classList.add('hidden');
+            }
         }
 
         function showToast(title, description, type = 'success') {
             const toast = document.getElementById('toast');
-            document.getElementById('toastTitle').textContent = title;
-            document.getElementById('toastDescription').textContent = description;
-            toast.className = `toast ${type === 'error' ? 'toast-error' : ''}`;
+            const toastTitle = document.getElementById('toastTitle');
+            const toastDescription = document.getElementById('toastDescription');
+            
+            toastTitle.textContent = title;
+            toastDescription.textContent = description;
+            
+            toast.className = `toast ${type === 'error' ? 'error' : ''}`;
             toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 3000);
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
         }
 
+        // Initialize on page load
         document.addEventListener('DOMContentLoaded', initializeEmojiPicker);
     </script>
 </body>
