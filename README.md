@@ -17,6 +17,7 @@ This is a single-page web app for hiding and recovering secret messages inside e
 - **Unicode magic**: Uses Unicode variation selectors to invisibly attach data to emoji characters
 - **Platform compatibility**: Works across different platforms, though some may strip the hidden data
 - **Tested on WhatsApp**: Tested on WhatsApp and it works
+- **Tested on LinkedIn posts**: Tested on LinkedIn posts and it works also
 ## Usage
 1. Open the web app
 2. Select an emoji from the available options
